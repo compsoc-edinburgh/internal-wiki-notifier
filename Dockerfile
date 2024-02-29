@@ -1,13 +1,11 @@
-FROM node:15.0.1-alpine
+FROM alpine
 
-WORKDIR /app
+# Copy script which should be run
+COPY ./notify-wikijs-recent-updates.sh /usr/local/bin/notify-wikijs-recent-updates.sh
+RUN chmod +x /usr/local/bin/notify-wikijs-recent-updates.sh
 
-COPY package*.json ./
+# Run the cron every 5 minutes
+RUN echo '*/5  *  *  *  *    /usr/local/bin/notify-wikijs-recent-updates.sh' > /etc/crontabs/root
 
-RUN npm install
-
-COPY . .
-
-EXPOSE ${PORT}
-
-CMD [ "npm", "run", "start" ]
+# Run the cron with log level 2, and in foreground so it doesn't exit immediately
+CMD ["crond", "-l 2", "-f"]
