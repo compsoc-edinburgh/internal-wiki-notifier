@@ -34,3 +34,7 @@ Not meant to be publicly embedded in Docker images.
 There is a helper script within the makefile, so after any local changes to the
 secrets (either after first creation or edits), run `make restart` which will
 stop remote services if any are running, sync the secrets, and start the service.
+
+## Logs
+
+To view production logs (prerequisite: SSH access), use `make logs` or `make tail`.
