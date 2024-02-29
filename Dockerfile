@@ -4,6 +4,9 @@ FROM alpine
 COPY ./notify-wikijs-recent-updates.sh /usr/local/bin/notify-wikijs-recent-updates.sh
 RUN chmod +x /usr/local/bin/notify-wikijs-recent-updates.sh
 
+# Install curl and jq
+RUN apk add --no-cache curl jq
+
 # Run the cron every 5 minutes
 RUN echo '*/5  *  *  *  *    /usr/local/bin/notify-wikijs-recent-updates.sh' > /etc/crontabs/root
 
