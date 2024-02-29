@@ -20,14 +20,15 @@ and follow steps in the Continuous Development section.
 For new remote setups (e.g. deploying to a new VM or under a different service
 name), run the above initialisation step first. Then, create a new local
 `.secrets/.env` file if it does not exist yet, and specify the environment keys
-to pass to the Docker container. Then run `make sync-secrets` and follow the
-steps in Continus Development.
+to pass to the Docker container. Then run `make sync-secrets` and `make restart`.
+Then follow the steps in Continus Development.
 
 ## Continuous Development
 
 During development, commit any changes to the code to Git and push to GitHub to
-trigger an automatic Docker image build. This will then trigger Watchtower to
-re-download the latest image and re-deploy the production instance. This is all
+trigger an automatic Docker image build and a notification to Watchtower on the
+production to VM. If there was a previous production instance, Watchtower will
+re-download the latest image and re-deploy with the latest image. This is all
 you need to update a deployment's code.
 
 However, to update a deployment's environment variables (i.e. those in .secrets),
@@ -35,8 +36,8 @@ you will need to manually sync them over via SSH because they are *secrets*!
 Not meant to be publicly embedded in Docker image builds.
 
 There is a helper script within the makefile, so after any local changes to the
-secrets (either after first creation or after edits), run `make restart` to
-stop remote services if any are running, sync the secrets, and start the service.
+secrets, run `make restart` to stop remote services if any are running, sync the
+secrets, and start the service.
 
 ## Logs
 
