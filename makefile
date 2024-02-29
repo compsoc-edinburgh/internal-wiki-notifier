@@ -42,6 +42,7 @@ start:
 		--network traefik-net \
 		--label "traefik.enable=true" \
 		--env-file /secrets/service-${SERVICE_NAME}/.env \
+		--volume /deployment/service-${SERVICE_NAME}:/etc/internal-wiki-notifier \
 		--label "com.centurylinklabs.watchtower.enable=true" \
 		ghcr.io/compsoc-edinburgh/service-${SERVICE_NAME}'
 
