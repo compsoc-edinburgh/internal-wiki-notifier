@@ -4,43 +4,44 @@ REMOTE=root@deployment-host.comp-soc.com
 
 # .SILENT:
 
+# Get the latest logs in real time, without any previous logs (i.e. only newer ones)
 tail:
-	ssh ${REMOTE} 'docker logs -f --tail 0 service-${SUBDOMAIN}'
+	ssh ${REMOTE} 'docker logs -f --tail 0 service-${SERVICE_NAME}'
 
+# Get all logs
 logs:
-	ssh ${REMOTE} 'docker logs service-${SUBDOMAIN}'
+	ssh ${REMOTE} 'docker logs service-${SERVICE_NAME}'
 
+# Synchronise Discord bot tokens
 sync-secrets:
-	rsync -r ./.secrets/ ${REMOTE}:/secrets/service-${SUBDOMAIN}
+	rsync -r ./.secrets/ ${REMOTE}:/secrets/service-${SERVICE_NAME}
 
-generate-port:
-	ssh ${REMOTE} 'ruby -e "require \"socket\"; puts Addrinfo.tcp(\"\", 0).bind {|s| s.local_address.ip_port }"' | tr -d '[:space:]' > .open-port
-
-PORT = $(shell cat .open-port)
-
-# Only run once, at service initialisation. All other deployment will be through github actions
-initialise: generate-port
+# After cloning this repo locally, you can run this to set up the .secrets
+# directory both locally and remotely. Harmless even if run multiple times.
+initialise:
 	mkdir -p .secrets
-	ssh ${REMOTE} "mkdir -p /secrets/service-${SUBDOMAIN}"
-	# _Definitely_ prone to race conditions, but this won't be called anywhere near frequently enough for that to matter
-	ssh ${REMOTE} 'docker exec postgres createdb -U postgres service-db-${SUBDOMAIN}'
-	ssh ${REMOTE} 'docker run -d --name service-${SUBDOMAIN} \
+	ssh ${REMOTE} "mkdir -p /secrets/service-${SERVICE_NAME}"
+	rsync -r ${REMOTE}:/secrets/service-${SERVICE_NAME}/ ./.secrets/
+
+# Start the Docker container on the remote. This is needed to refresh secret
+# .env files after a sync-secrets -- for this reason, it's recommended to use
+# the restart target instead, which covers it.
+start:
+	ssh ${REMOTE} 'docker run -d --name service-${SERVICE_NAME} \
 		--network traefik-net \
 		--label "traefik.enable=true" \
-		-p ${PORT}:${PORT} \
-		-e PORT=${PORT} \
-		-v /secrets/service-${SUBDOMAIN}:/secrets \
-		-e "DATABASE_URL=postgresql://postgres:mysecretpassword@postgres:5432/service-db-${SUBDOMAIN}" \
-		-e "FILE_UPLOAD=https://service-simple-storage:3456/${SUBDOMAIN}" \
+		--env-file /secrets/service-${SERVICE_NAME}/.env \
 		--label "com.centurylinklabs.watchtower.enable=true" \
-		--label "traefik.http.routers.service-${SUBDOMAIN}.rule=Host(\`${SUBDOMAIN}.dev.comp-soc.com\`)" \
-		--label "traefik.http.routers.service-${SUBDOMAIN}.middlewares=traefik-forward-auth" \
-		ghcr.io/compsoc-edinburgh/service-${SUBDOMAIN}'
-	rm .open-port
-	
-teardown-db:
-	ssh ${REMOTE} 'docker exec postgres dropdb -U postgres service-db-${SUBDOMAIN}'
+		ghcr.io/compsoc-edinburgh/service-${SERVICE_NAME}'
 
-teardown: teardown-db
-	ssh ${REMOTE} 'docker stop service-${SUBDOMAIN}'
-	ssh ${REMOTE} 'docker rm service-${SUBDOMAIN}'
+# Most used command, restarts the service after syncing secrets (i.e. new
+# Discord bot tokens). Can be run even if this is the first time you're
+# deploying the service.
+restart: teardown sync-secrets start
+
+# Stop and remove the Docker container on the remote. The || true is to ignore
+# errors if the container doesn't exist, without supressing SSH errors or
+# exiting the make command.
+teardown:
+	ssh ${REMOTE} 'docker stop service-${SERVICE_NAME} || true'
+	ssh ${REMOTE} 'docker rm service-${SERVICE_NAME} || true'
