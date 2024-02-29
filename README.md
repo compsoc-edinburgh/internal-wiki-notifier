@@ -10,29 +10,32 @@ will have SSH access to the deployment VM to configure webhook URLs and API keys
 
 ## First Time Setup
 
-For new local copies (e.g. new TechSec), clone this repository, and run
-`make initialise`. As a prerequisite, this will require you to have SSH access
-configured in `~/.ssh/config` for `root@deployment-host.comp-soc.com`. The
-initialisisation will download any production keys to your computer if the
-service is already deployed and running.
+For new local copies (e.g. new TechSec after a handover), clone this repository,
+and run `make initialise`. As a prerequisite, this will require you to have SSH
+access configured in `~/.ssh/config` for `root@deployment-host.comp-soc.com`.
+The initialisisation will download any production keys to your computer if the
+service is already deployed and running. After this, edit as you like locally
+and follow steps in the Continuous Development section.
 
-For new remote setups, after running the above initialisation, create a new
-local `.secrets/.env` directory if it does not exist yet, and specify the
-arguments to pass to the Docker container. Then run `make sync-secrets`.
+For new remote setups (e.g. deploying to a new VM or under a different service
+name), run the above initialisation step first. Then, create a new local
+`.secrets/.env` file if it does not exist yet, and specify the environment keys
+to pass to the Docker container. Then run `make sync-secrets` and follow the
+steps in Continus Development.
 
 ## Continuous Development
 
-Commit any changes to the code to Git and push to GitHub to trigger an automatic
-Docker image build. This will then trigger Watchtower to re-download the latest
-image and re-deploy the production instance. This is all you need to update a
-deployment's code.
+During development, commit any changes to the code to Git and push to GitHub to
+trigger an automatic Docker image build. This will then trigger Watchtower to
+re-download the latest image and re-deploy the production instance. This is all
+you need to update a deployment's code.
 
-However, to update a deployment's environment variables (i.e. those in .secretes),
+However, to update a deployment's environment variables (i.e. those in .secrets),
 you will need to manually sync them over via SSH because they are *secrets*!
-Not meant to be publicly embedded in Docker images.
+Not meant to be publicly embedded in Docker image builds.
 
 There is a helper script within the makefile, so after any local changes to the
-secrets (either after first creation or edits), run `make restart` which will
+secrets (either after first creation or after edits), run `make restart` to
 stop remote services if any are running, sync the secrets, and start the service.
 
 ## Logs
