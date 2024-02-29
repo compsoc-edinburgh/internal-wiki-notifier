@@ -18,7 +18,7 @@ service is already deployed and running.
 
 For new remote setups, after running the above initialisation, create a new
 local `.secrets/.env` directory if it does not exist yet, and specify the
-arguments to pass to the Docker container.
+arguments to pass to the Docker container. Then run `make sync-secrets`.
 
 ## Continuous Development
 

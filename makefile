@@ -13,15 +13,26 @@ logs:
 	ssh ${REMOTE} 'docker logs service-${SERVICE_NAME}'
 
 # Synchronise Discord bot tokens
-sync-secrets:
+sync-secrets: sync-secrets-confirm
 	rsync -r ./.secrets/ ${REMOTE}:/secrets/service-${SERVICE_NAME}
+
+sync-secrets-confirm:
+	@echo "!!! Confirm that you want to execute this sync operation to copy local secrets to production."
+	@echo "!!! This wil overwrite any credentials that are currently actively deployed. [y/N]"
+	@read ans && [ $${ans:-N} = y ]
 
 # After cloning this repo locally, you can run this to set up the .secrets
 # directory both locally and remotely. Harmless even if run multiple times.
-initialise:
+initialise: initialise-confirm
+	rsync -r ${REMOTE}:/secrets/service-${SERVICE_NAME}/ ./.secrets/
+
+initialise-confirm:
 	mkdir -p .secrets
 	ssh ${REMOTE} "mkdir -p /secrets/service-${SERVICE_NAME}"
-	rsync -r ${REMOTE}:/secrets/service-${SERVICE_NAME}/ ./.secrets/
+	@rsync --dry-run -v -r ${REMOTE}:/secrets/service-${SERVICE_NAME}/ ./.secrets/
+	@echo "!!! Confirm that you want to execute this sync operation to copy production secrets to local."
+	@echo "!!! This will overwrite any testing/debugging credentials you may already have. [y/N]"
+	@read ans && [ $${ans:-N} = y ]
 
 # Start the Docker container on the remote. This is needed to refresh secret
 # .env files after a sync-secrets -- for this reason, it's recommended to use
