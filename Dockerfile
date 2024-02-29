@@ -8,4 +8,4 @@ RUN chmod +x /usr/local/bin/notify-wikijs-recent-updates.sh
 RUN echo '*/5  *  *  *  *    /usr/local/bin/notify-wikijs-recent-updates.sh' > /etc/crontabs/root
 
 # Run the cron with log level 2, and in foreground so it doesn't exit immediately
-CMD ["crond", "-l 2", "-f"]
+CMD ["crond", "-l2", "-f"]
