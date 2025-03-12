@@ -12,7 +12,7 @@ RUN apk add --no-cache curl jq
 WORKDIR /etc/internal-wiki-notifier
 
 # Run the cron every 5 minutes
-RUN echo '*/5  *  *  *  *    cd /etc/internal-wiki-notifier && /usr/local/bin/notify-wikijs-recent-updates.sh' > /etc/crontabs/root
+RUN echo '*/30  *  *  *  *    cd /etc/internal-wiki-notifier && /usr/local/bin/notify-wikijs-recent-updates.sh' > /etc/crontabs/root
 
 # Run the cron with log level 2, and in foreground so it doesn't exit immediately
 CMD ["crond", "-l2", "-f"]
