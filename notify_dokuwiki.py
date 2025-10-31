@@ -16,6 +16,8 @@ class Updates:
 # I basically directly translated the bash script that existed previously into python
 # which is why it's structured like this. - Emily, 31/10/2025 
 def run_script():
+    print("Running script.")
+
     # Load authentication tokens
     load_dotenv()
     dokuwiki_token = os.environ.get("DOKUWIKI_AUTH_TOKEN")
@@ -38,8 +40,7 @@ def run_script():
 
     # Generate message to send
     title = "Wiki Updates"
-    message = "New updates on wiki:"
-    message += "\n".join(titles)
+    message = "\n".join(titles)
 
     # Send via webhook
     req = requests.post(f"https://discord.com/api/webhooks/{webhook_id}/{webhook_token}", 
@@ -59,6 +60,8 @@ def run_script():
     # Update last_update
     Updates.last_update = time.gmtime()
 
+    print("Script finish running successfully!")
+
 def scheduler_run(scheduler):
     scheduler.enter(Updates.schedule_sleep_seconds, 1, scheduler_run, (scheduler,))
     try:
@@ -67,6 +70,7 @@ def scheduler_run(scheduler):
         print(f"Caught Exception: {e}")
 
 def start_scheduler():
+    print("Starting scheduler...")
     scheduler = sched.scheduler(time.time, time.sleep)
     scheduler.enter(Updates.schedule_sleep_seconds, 0, scheduler_run, (scheduler,))
     scheduler.run()
