@@ -10,7 +10,7 @@ import sys
 from dotenv import load_dotenv
 
 class Updates:
-    schedule_sleep_seconds = 60*30 # how many seconds between updates
+    schedule_sleep_seconds = 5 # how many seconds between updates
     last_update = None
 
 # I basically directly translated the bash script that existed previously into python
