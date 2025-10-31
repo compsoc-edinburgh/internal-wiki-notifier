@@ -37,25 +37,27 @@ def run_script():
     # Parse feed and get updates
     feed = feedparser.parse(req.content)
     titles = [entry.title for entry in feed.entries if not Updates.last_update or entry.updated_parsed > Updates.last_update]
+    
+    # Only send message if there's something to send
+    if titles:
+        # Generate message to send
+        title = "Wiki Updates"
+        message = "\n".join(titles)
 
-    # Generate message to send
-    title = "Wiki Updates"
-    message = "\n".join(titles)
-
-    # Send via webhook
-    req = requests.post(f"https://discord.com/api/webhooks/{webhook_id}/{webhook_token}", 
-                        headers={"Content-Type": "application/json"},
-                        data=json.dumps({
-                            "username": "CompSoc Internal Wiki Updates",
-                            "avatar_url": "https://d7umqicpi7263.cloudfront.net/img/product/270b2d4d-7902-4fbf-b245-b6ea862ceea8/d2fde27f-c059-4140-8f13-ce17827af33c.PNG",
-                            "embeds": [{
-                                "title": title, 
-                                 "type": "rich", 
-                                 "description": message, 
-                                 "color": 2697569
-                            }]
-                        }))
-    req.raise_for_status()
+        # Send via webhook
+        req = requests.post(f"https://discord.com/api/webhooks/{webhook_id}/{webhook_token}", 
+                            headers={"Content-Type": "application/json"},
+                            data=json.dumps({
+                                "username": "CompSoc Internal Wiki Updates",
+                                "avatar_url": "https://d7umqicpi7263.cloudfront.net/img/product/270b2d4d-7902-4fbf-b245-b6ea862ceea8/d2fde27f-c059-4140-8f13-ce17827af33c.PNG",
+                                "embeds": [{
+                                    "title": title, 
+                                     "type": "rich", 
+                                     "description": message, 
+                                     "color": 2697569
+                                }]
+                            }))
+        req.raise_for_status()
     
     # Update last_update
     Updates.last_update = time.gmtime()
@@ -76,6 +78,7 @@ def start_scheduler():
     scheduler.run()
 
 def main():
+    Updates.last_time = time.gmtime()
     if len(sys.argv) >= 2 and sys.argv[1] == "run-once":
         run_script()
     elif len(sys.argv) == 1:
