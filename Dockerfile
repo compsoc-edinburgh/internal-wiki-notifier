@@ -1,18 +1,14 @@
-FROM alpine
+FROM python:3.12@sha256:72e5baf244fb1a9ddc985800340b48c2a0c72fdc9479e95d0f39987284f9f1cd
 
 # Create directory for the working directory slash cache
 RUN mkdir -p /etc/internal-wiki-notifier
-# Copy script which should be run
-COPY ./notify-wikijs-recent-updates.sh /usr/local/bin/notify-wikijs-recent-updates.sh
-RUN chmod +x /usr/local/bin/notify-wikijs-recent-updates.sh
-
-# Install curl and jq
-RUN apk add --no-cache curl jq
-
 WORKDIR /etc/internal-wiki-notifier
 
-# Run the cron every 5 minutes
-RUN echo '*/30  *  *  *  *    cd /etc/internal-wiki-notifier && /usr/local/bin/notify-wikijs-recent-updates.sh' > /etc/crontabs/root
+# Copy script and requirements
+COPY ./notify_dokuwiki.py ./requirements.txt .
 
-# Run the cron with log level 2, and in foreground so it doesn't exit immediately
-CMD ["crond", "-l2", "-f"]
+# Install python dependencies
+RUN pip install -r requirements.txt
+
+# Python script should do scheduling for us
+CMD ["python3", "notify_dokuwiki.py"]
