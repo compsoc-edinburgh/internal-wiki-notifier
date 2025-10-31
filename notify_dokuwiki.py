@@ -10,13 +10,13 @@ import sys
 from dotenv import load_dotenv
 
 class Updates:
-    schedule_sleep_seconds = 5 # how many seconds between updates
+    schedule_sleep_seconds = 60*30 # how many seconds between updates
     last_update = None
 
 # I basically directly translated the bash script that existed previously into python
 # which is why it's structured like this. - Emily, 31/10/2025 
 def run_script():
-    print("Running script.")
+    print(f"Running script at {time.gmtime()}")
 
     # Load authentication tokens
     load_dotenv()
@@ -40,6 +40,7 @@ def run_script():
     
     # Only send message if there's something to send
     if titles:
+        print("Changes found, sending message.")
         # Generate message to send
         title = "Wiki Updates"
         message = "\n".join(titles)
@@ -58,11 +59,13 @@ def run_script():
                                 }]
                             }))
         req.raise_for_status()
+        print("Message successfully sent!")
+
     
     # Update last_update
     Updates.last_update = time.gmtime()
 
-    print("Script finish running successfully!")
+    print(f"Script finish running successfully at {time.gmtime()}")
 
 def scheduler_run(scheduler):
     scheduler.enter(Updates.schedule_sleep_seconds, 1, scheduler_run, (scheduler,))
